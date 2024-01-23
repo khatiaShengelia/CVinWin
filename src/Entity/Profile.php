@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\ProfileRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -40,6 +42,14 @@ class Profile
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photoFilename = null;
+
+    #[ORM\OneToMany(mappedBy: 'profile', targetEntity: CurriculumVitae::class)]
+    private Collection $curriculumVitaes;
+
+    public function __construct()
+    {
+        $this->curriculumVitaes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -150,6 +160,36 @@ class Profile
     public function setPhotoFilename(?string $photoFilename): static
     {
         $this->photoFilename = $photoFilename;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, CurriculumVitae>
+     */
+    public function getCurriculumVitaes(): Collection
+    {
+        return $this->curriculumVitaes;
+    }
+
+    public function addCurriculumVitae(CurriculumVitae $curriculumVitae): static
+    {
+        if (!$this->curriculumVitaes->contains($curriculumVitae)) {
+            $this->curriculumVitaes->add($curriculumVitae);
+            $curriculumVitae->setProfile($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCurriculumVitae(CurriculumVitae $curriculumVitae): static
+    {
+        if ($this->curriculumVitaes->removeElement($curriculumVitae)) {
+            // set the owning side to null (unless already changed)
+            if ($curriculumVitae->getProfile() === $this) {
+                $curriculumVitae->setProfile(null);
+            }
+        }
 
         return $this;
     }
