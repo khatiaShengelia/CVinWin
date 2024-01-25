@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\CurriculumVitaeRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -33,6 +35,14 @@ class CurriculumVitae
     #[ORM\ManyToOne(inversedBy: 'curriculumVitaes')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Profile $profile = null;
+
+    #[ORM\OneToMany(mappedBy: 'curriculumVitae', targetEntity: Section::class)]
+    private Collection $sections;
+
+    public function __construct()
+    {
+        $this->sections = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -107,6 +117,36 @@ class CurriculumVitae
     public function setProfile(?Profile $profile): static
     {
         $this->profile = $profile;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Section>
+     */
+    public function getSections(): Collection
+    {
+        return $this->sections;
+    }
+
+    public function addSection(Section $section): static
+    {
+        if (!$this->sections->contains($section)) {
+            $this->sections->add($section);
+            $section->setCurriculumVitae($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSection(Section $section): static
+    {
+        if ($this->sections->removeElement($section)) {
+            // set the owning side to null (unless already changed)
+            if ($section->getCurriculumVitae() === $this) {
+                $section->setCurriculumVitae(null);
+            }
+        }
 
         return $this;
     }
